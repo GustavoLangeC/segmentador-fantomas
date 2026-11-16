@@ -1,0 +1,55 @@
+# Experimento mínimo XRMC: PMMA com uma perfuração
+
+Este diretório é independente de `main.py`: o XRMC simula a aquisição física;
+o segmentador não é chamado, nem informa a geometria à simulação.
+
+## Escopo científico
+
+O experimento representa uma placa retangular de PMMA de 25 mm, uma perfuração
+passante de 10 mm, um filtro de alumínio de 2 mm, uma fonte pontual e um
+detector plano a 1 m da fonte. O objeto está a 1,25 cm do detector.
+
+O espectro inicial é deliberadamente **monoenergético de 50 keV**. Ele é útil
+para validar geometria, atenuação relativa e leitura do XRMC, mas não equivale
+a uma aquisição clínica de 81 kVp. A modelagem de espectro, anodo, resposta do
+detector, dose/mAs, espalhamento real e pós-processamento fica para uma fase de
+calibração posterior.
+
+## Executar
+
+```bash
+./simulacao_xrmc/executar_minimo.sh
+```
+
+O comando executa `minimo_pmmaa_furo/input.dat` e grava:
+
+- `output/image.dat`: saída binária XRMC, float64 e cabeçalho de 60 bytes;
+- `output/image.npy`: matriz `256 x 256` convertida sem normalização;
+- `output/image.png`: prévia visual em escala de cinza, com contraste exibido
+  entre os percentis 1 e 99; é apenas visualização e não substitui o NPY;
+- `output/manifest.json`: parâmetros e versão do experimento.
+
+O teste de sucesso é físico e simples: a transmissão média no centro da
+perfuração deve ser maior que a do PMMA ao redor. `validar_minimo.py` executa
+essa checagem (com ROIs fixas **somente para validar esta geometria conhecida**)
+e imprime a razão de transmissões. Isso não valida a reprodução quantitativa
+do equipamento Philips nem a segmentação.
+
+## Estrutura de coordenadas e unidades
+
+O XRMC usa centímetros. A fonte está em `(0, -100, 0)` cm e o detector no
+plano `y=0`, portanto a distância fonte-detector é 100 cm. O feixe percorre a
+direção `+y`; `x` é a direção horizontal da imagem e `z`, a vertical.
+
+## Dependência local
+
+O executável esperado fica em `.deps/xrmc/bin/xrmc`; a biblioteca `xraylib`
+local fica em `.deps/xraylib`. Esses componentes não alteram a instalação do
+sistema. Se faltarem, use:
+
+```bash
+./simulacao_xrmc/instalar_xrmc_local.sh
+```
+
+O instalador é destinado ao Debian/Trixie deste computador e usa a release
+XRMC 6.7.0. Ele não instala Geant4.
