@@ -540,3 +540,19 @@ em um repositório temporário; `venv/bin/python -m unittest discover -s tests
 -q` passou os nove testes. A proposta de arquitetura e sequência de trabalho
 está em `docs/PROXIMOS_PASSOS.md`. Nenhum diretório foi renomeado nem
 publicado no GitHub nesta etapa.
+
+### Atualização — publicação inicial no GitHub (16 de novembro de 2026)
+
+O diretório foi inicializado como repositório Git e publicado em
+`https://github.com/GustavoLangeC/radio2`, com visibilidade pública e ramo
+`main`. A publicação inicial continha 51 arquivos de código, testes e
+documentação. A lista de arquivos versionados foi conferida: não inclui
+nenhum dos nove DICOMs, resultados experimentais, referências, ambiente
+virtual ou PDF do TCC. O estado remoto e o commit local foram comparados, e
+uma consulta pública à API do GitHub confirmou `private=false`.
+
+Antes da publicação, `venv/bin/python -m unittest discover -s tests -q`
+executou nove testes com resultado `OK`. A publicação não acrescenta
+validação científica da segmentação. A simulação permanece na subpasta
+`simulacao_xrmc/`; sua separação e a renomeação do projeto seguem como
+decisões de arquitetura posteriores.
