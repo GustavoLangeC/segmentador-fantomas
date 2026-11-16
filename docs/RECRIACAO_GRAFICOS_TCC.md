@@ -7,7 +7,7 @@ seções 3 e 4, especialmente Figuras 15–34 e Equações 1–3.
 ## Gerar novamente
 
 ```bash
-cd ~/projects/radio2
+cd ~/projects/segmentador-fantomas
 venv/bin/python -m radio2.gerar_resultados_tcc \
   --lote resultados/lote_demonstracao_2026-11-16 \
   --revisao-cranio resultados/lote/001_Crânio81_1/revisoes/revisao_002 \

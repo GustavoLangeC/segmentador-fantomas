@@ -556,3 +556,50 @@ executou nove testes com resultado `OK`. A publicação não acrescenta
 validação científica da segmentação. A simulação permanece na subpasta
 `simulacao_xrmc/`; sua separação e a renomeação do projeto seguem como
 decisões de arquitetura posteriores.
+
+### Atualização — integração XRMC, separação e renomeação (16 de novembro de 2026)
+
+O cenário XRMC mínimo foi movido para o repositório público
+`https://github.com/GustavoLangeC/simulacao-xrmc`; o repositório do
+segmentador foi renomeado para
+`https://github.com/GustavoLangeC/segmentador-fantomas`. As pastas locais são
+irmãs em `~/projects/`. Um link simbólico `~/projects/radio2` aponta para
+`segmentador-fantomas`, preservando caminhos absolutos antigos e o atalho
+local. O pacote Python continua chamado `radio2` para preservar os comandos.
+As saídas locais de simulação e suas dependências permaneceram no novo
+diretório, excluídas pelo `.gitignore`; DICOMs, resultados e referências
+continuaram locais e não entraram em nenhum dos repositórios públicos.
+
+`simulacao-xrmc/gerar_referencia.py` cria `verdade_simulada.npz` a partir da
+geometria ideal do cenário, mais JSON com SHA-256 da imagem e do manifesto.
+`radio2.avaliar_simulacao` verifica o vínculo, detecta usando as mesmas
+classes do fluxo DICOM e só depois carrega a referência para calcular
+TP/FP/FN e IoU. A imagem XRMC `float64` é usada para as medições originais;
+`float32` só é usado internamente para localizar objetos.
+
+Teste reproduzível: em `simulacao-xrmc`, `XRMC_PYTHON=../segmentador-fantomas/venv/bin/python
+./executar_minimo.sh`; depois em `segmentador-fantomas`,
+`venv/bin/python -m radio2.avaliar_simulacao --imagem
+../simulacao-xrmc/minimo_pmmaa_furo/output/image.npy --referencia
+../simulacao-xrmc/minimo_pmmaa_furo/output/verdade_simulada.npz --saida
+/tmp/radio2_sim_after_split_2026-11-16 --sensibilidade 1.5`. A execução
+XRMC mediu transmissão furo/PMMA de **1,853070**. O detector localizou um
+objeto de 2.287 pixels; a referência geométrica tem 2.000 pixels. Resultado:
+**TP=1, FP=0, FN=0**, IoU por pixel **0,874508**, erro de centroide **0,0354
+px**. O recorte externo foi `(x=23,y=23,w=210,h=210)`. Em uma execução do
+avaliador, VmHWM observado foi **124912 kB**, com duração **1,191 s**; não há
+amostragem suficiente para análise estatística de memória. Esta é uma
+validação técnica do fluxo em uma perfuração simulada, não prova de
+generalização ou reprodução da aquisição do TCC.
+
+Comparação antes/depois: `venv/bin/python processar_lote.py --dicom-dir dicom
+--output-dir /tmp/radio2_integracao_before_2026-11-16 --sensibilidade 1.5`
+e o mesmo comando com saída `/tmp/radio2_integracao_after_2026-11-16`.
+Nos nove DICOMs, CSVs idênticos em bytes; arrays de máscaras, recortes e
+estados de qualidade iguais. Contagens Crânio **24/23/24**, Mão **24/24/23**,
+Tórax **24/5/1**; Tórax125_2/4 permaneceram inconclusivos. Após a mudança
+de pasta, `Crânio81_1 --sem-grafico` também produziu CSV e máscara idênticos
+à linha de base. Dez testes do segmentador e um teste do simulador passaram.
+Ainda faltam máscaras manuais independentes e testes com outras formas,
+profundidades e condições de exposição. Protocolo:
+`docs/INTEGRACAO_SIMULACAO.md`.

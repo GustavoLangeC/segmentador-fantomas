@@ -19,7 +19,7 @@ significado científico com uma máscara manual independente.
 ## Antes/depois reprodutível
 
 ```bash
-cd ~/projects/radio2
+cd ~/projects/segmentador-fantomas
 venv/bin/python -m unittest discover -s tests -v
 venv/bin/python -m radio2.processar_lote --dicom-dir dicom \
   --output-dir /tmp/radio2_qualidade_2026-11-16 --sensibilidade 1.5

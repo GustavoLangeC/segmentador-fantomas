@@ -6,8 +6,6 @@
 
 # Ambiente e dependências compiladas localmente
 /venv/
-/simulacao_xrmc/.deps/
-/simulacao_xrmc/minimo_pmmaa_furo/output/
 /Radio2.desktop
 
 # Artefatos de Python, empacotamento e execução

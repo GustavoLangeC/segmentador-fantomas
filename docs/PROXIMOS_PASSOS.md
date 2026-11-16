@@ -2,6 +2,11 @@
 
 **Proposta para discussão — 16 de novembro de 2026.**
 
+**Atualização:** a integração mínima e a separação em repositórios foram
+implementadas em 16 de novembro de 2026; veja
+[`INTEGRACAO_SIMULACAO.md`](INTEGRACAO_SIMULACAO.md). As demais etapas deste
+documento continuam como propostas de pesquisa e produto.
+
 ## Organização sugerida
 
 Separar em dois projetos irmãos, com responsabilidades explícitas:
