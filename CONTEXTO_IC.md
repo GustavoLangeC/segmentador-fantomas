@@ -603,3 +603,68 @@ de pasta, `Crânio81_1 --sem-grafico` também produziu CSV e máscara idênticos
 Ainda faltam máscaras manuais independentes e testes com outras formas,
 profundidades e condições de exposição. Protocolo:
 `docs/INTEGRACAO_SIMULACAO.md`.
+
+### Atualização — cenários de estresse, interface e material de defesa (16 de novembro de 2026)
+
+O pacote de implementação foi renomeado de `radio2/` para
+`segmentador_fantomas/`. O pacote pequeno `radio2/` conserva os comandos
+antigos por compatibilidade; `main.py`, `processar_lote.py` e `interface.py`
+mantêm suas CLIs. A interface Tk ganhou **Simulação e avaliação** com XRMC
+mínimo, quatro formas, baixo contraste e saturação analítica, além de seleção
+de NPY existente. O gerador analítico do repositório `simulacao-xrmc` usa
+`S=(S_PMMA+gradiente)*exp(0,24*profundidade_cm)+ruído` com semente fixa e
+formas conhecidas somente pelo gerador/avaliador. Ele não executa XRMC e
+não é calibrado para o equipamento real. `benchmark_simulacao.py` executa
+os quatro casos e cria CSV, JSON, HTML e logs.
+
+Comando reproduzível: `venv/bin/python -m
+segmentador_fantomas.benchmark_simulacao --simulacao ../simulacao-xrmc
+--saida /tmp/benchmark_simulacao_2026-11-16`. Sensibilidade 1,5:
+
+| Cenário | TP | FP | FN | IoU pixel | Estado |
+| --- | ---: | ---: | ---: | ---: | --- |
+| XRMC mínimo, 1 furo passante | 1 | 0 | 0 | 0,874508 | provisoria |
+| Analítico, 4 formas, 5/10/15/20 mm | 4 | 0 | 0 | 0,836329 | provisoria |
+| Analítico, baixo contraste, 2 regiões | 2 | 44 | 0 | 0,223424 | inconclusiva |
+| Analítico, saturação, 2 regiões | 0 | 5 | 2 | 0 | inconclusiva |
+
+O baixo contraste produziu 46 candidatos, 45 com alerta. `image_quality`
+passou a marcar como inconclusiva uma imagem com pelo menos cinco candidatos
+quando menos de 20% estão sem alerta, sem descartar nenhum candidato. É
+heurística não calibrada, inspirada pelo teste de estresse; não prova
+segurança em todas as imagens. O cenário saturado usa teto ilustrativo
+`clip_max=45950`, removendo contraste útil. A tabela de profundidades
+conhecidas da simulação é associada somente após a detecção e exportada em
+`profundidades_referencia.csv`.
+
+Comparação DICOM antes/depois:
+`venv/bin/python processar_lote.py --dicom-dir dicom --output-dir
+/tmp/segmentador_before_resto_2026-11-16 --sensibilidade 1.5` e o mesmo
+com `/tmp/segmentador_final_lote_2026-11-16`. Nos nove DICOMs,
+`resultados.csv` idênticos em bytes, arrays `labels` e bboxes de
+`mascaras.npz` iguais, estados e motivos de qualidade iguais. Contagens:
+Crânio 24/23/24, Mão 24/24/23, Tórax 24/5/1. Tórax125_2/4 continuam
+inconclusivos. A comparação não mede acurácia contra máscaras humanas.
+
+O fluxo da interface foi testado com uma janela Tk real e a abertura do
+relatório interceptada em teste: os botões XRMC e quatro formas concluíram
+e apontaram para HTML existente. O lançador `iniciar_segmentador.sh` abriu
+a interface por três segundos sem erro antes do encerramento controlado;
+`instalar_atalho.py` instalou um atalho local em
+`~/.local/share/applications/segmentador-fantomas.desktop`. Os quatro
+cenários também foram executados via workflow de subprocessos. A interface
+não recebeu uma inspeção visual manual de layout nesta etapa. Onze testes
+do segmentador e dois do simulador passaram; não houve nova medição de pico
+de RAM nesta alteração.
+
+O lote `resultados/lote_20261116_154632` foi auditado tecnicamente:
+Crânio81_2 tem mapa informado pelo usuário com 1–24 mm e
+`validacao_independente=false`; Crânio81_1/4 receberam 24 associações
+espaciais cada, com distâncias máximas de 4,344/5,397 px e conferência
+visual pendente. Nenhuma profundidade física foi validada pelo software.
+`docs/AUDITORIA_MAPAS_FISICOS_2026-11-16.md` registra a divergência entre
+24 mm no mapa e a exclusão do furo passante descrita no TCC. Foi preparado
+`docs/TAREFA_MASCARAS_MANUAIS.md` para anotador/revisor humanos e
+`validar_referencia.py` para conferir formato e vínculo SHA-256 das máscaras,
+sem criar referências artificiais para os DICOMs. O material técnico e
+perguntas para a apresentação estão em `docs/GUIA_PROFESSOR.md`.

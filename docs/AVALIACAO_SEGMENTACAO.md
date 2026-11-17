@@ -20,7 +20,7 @@ O diretório contém:
 ## Máscara manual e comparação
 
 A opção **Anotar referência** da interface (ou
-`venv/bin/python -m radio2.anotar_referencia dicom/Crânio81_1 referencias/Crânio81_1`)
+`venv/bin/python -m segmentador_fantomas.anotar_referencia dicom/Crânio81_1 referencias/Crânio81_1`)
 inicia uma matriz de rótulos vazia sobre o DICOM inteiro, sem importar máscaras
 do detector. Cada salvamento cria uma versão NPZ e um JSON com proveniência.
 Uma versão salva ainda precisa de conferência independente antes de servir
@@ -31,7 +31,7 @@ A referência deve ser um `.npz` com um array 2D inteiro chamado `labels`: zero 
 Para converter uma máscara manual TIFF/NPY exportada do ImageJ, use `converter_referencia.py`. Se a imagem for binária com ROIs desconectadas, `--binaria` cria um rótulo por componente:
 
 ```bash
-venv/bin/python -m radio2.converter_referencia referencias/cranio81_1.tif \
+venv/bin/python -m segmentador_fantomas.converter_referencia referencias/cranio81_1.tif \
   referencias/cranio81_1_manual.npz --binaria
 ```
 

@@ -26,21 +26,23 @@ venv/bin/python main.py Crânio81_1 --sem-janela
 venv/bin/python processar_lote.py --dicom-dir dicom \
   --output-dir resultados/novo_lote --sensibilidade 1.5
 venv/bin/python interface.py
+venv/bin/python instalar_atalho.py  # cria o atalho no menu do usuário
 ```
 
 Cada execução gráfica gera `relatorio_<DICOM>.html` com quatro gráficos e
 tabela. O lote cria um relatório por imagem. `--sem-grafico` imprime apenas
 números. Para o relatório comparativo inspirado no TCC, use
-`venv/bin/python -m radio2.gerar_resultados_tcc`; ele requer as exposições existentes
+`venv/bin/python -m segmentador_fantomas.gerar_resultados_tcc`; ele requer as exposições existentes
 e usa o protocolo documentado em `docs/RECRIACAO_GRAFICOS_TCC.md`.
 
 ## Organização
 
 - `dicom/`: imagens locais fornecidas pelo usuário, não publicadas.
 - `main.py`, `processar_lote.py`, `interface.py`: comandos de entrada preservados.
-- `radio2/`: implementação do detector, processamento, revisão, avaliação,
+- `segmentador_fantomas/`: implementação do detector, processamento, revisão, avaliação,
   relatórios e curvas. Ferramentas auxiliares são executadas com
-  `venv/bin/python -m radio2.NOME_DO_MODULO`.
+  `venv/bin/python -m segmentador_fantomas.NOME_DO_MODULO`.
+- `radio2/`: alias de compatibilidade para comandos `python -m radio2.*` antigos.
 - `referencias/`: anotações manuais independentes, iniciadas em branco.
 - `resultados/`: saídas e versões históricas; veja `resultados/README.md`.
 - `docs/`: protocolo, resultados, limites, código histórico e PDF do TCC.
@@ -52,7 +54,7 @@ a referência geométrica. O segmentador detecta apenas a partir da imagem;
 a referência é usada posteriormente na avaliação:
 
 ```bash
-venv/bin/python -m radio2.avaliar_simulacao \
+venv/bin/python -m segmentador_fantomas.avaliar_simulacao \
   --imagem ../simulacao-xrmc/minimo_pmmaa_furo/output/image.npy \
   --referencia ../simulacao-xrmc/minimo_pmmaa_furo/output/verdade_simulada.npz \
   --saida resultados/avaliacao_simulada
@@ -61,6 +63,17 @@ venv/bin/python -m radio2.avaliar_simulacao \
 Esse comando gera métricas FP/FN/IoU, CSV, máscaras e relatório HTML. Veja
 [o protocolo de integração](docs/INTEGRACAO_SIMULACAO.md) para os limites
 da referência geométrica e os comandos reproduzíveis.
+
+Na interface, a seção **Simulação e avaliação** executa o XRMC mínimo ou
+três cenários analíticos de estresse e abre o relatório. O programa também
+aceita uma imagem NPY simulada já existente. Os cenários analíticos são
+testes de software, não reproduções calibradas de um equipamento real.
+Para executar e comparar os quatro cenários de uma vez:
+
+```bash
+venv/bin/python -m segmentador_fantomas.benchmark_simulacao \
+  --simulacao ../simulacao-xrmc --saida resultados/benchmark_simulacao
+```
 
 Os DICOMs, resultados experimentais, referências, ambiente virtual, binários
 e o PDF do TCC são mantidos fora da publicação no
@@ -84,3 +97,7 @@ associações para exposições próximas da mesma técnica quando os centroides
 correspondem de forma exclusiva; mapas manuais nos alvos são preservados.
 O procedimento e os limites estão em
 `docs/MAPEAMENTO_PROFUNDIDADES.md`.
+
+Para a apresentação da pesquisa, veja o [guia técnico e perguntas frequentes](docs/GUIA_PROFESSOR.md).
+Para delegar a anotação independente, entregue o
+[protocolo de máscaras manuais](docs/TAREFA_MASCARAS_MANUAIS.md).

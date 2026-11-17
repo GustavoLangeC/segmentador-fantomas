@@ -88,10 +88,15 @@ def image_quality(objects):
     if not objects:
         return {'estado': 'inconclusiva', 'motivos': ['nenhuma_regiao_detectada'],
                 'regioes_sem_alerta': 0}
-    if clear:
+    # Uma única região sem alerta não torna confiável uma imagem em que quase
+    # todos os candidatos são suspeitos. É um alerta agregado, não um filtro
+    # de detecção nem uma contagem esperada de insertos.
+    overwhelmed = bool(clear) and len(objects) >= 5 and clear / len(objects) < 0.2
+    if clear and not overwhelmed:
         return {'estado': 'provisoria', 'motivos': [],
                 'regioes_sem_alerta': clear}
-    reasons = ['nenhuma_regiao_sem_alerta_heuristico']
+    reasons = (['maioria_candidatos_com_alerta_heuristico'] if overwhelmed else
+               ['nenhuma_regiao_sem_alerta_heuristico'])
     flags = {flag.split(':', 1)[0] for obj in objects
              for flag in obj.get('quality_flags', [])}
     for flag in ('fundo_local_indisponivel', 'proximo_da_area_maxima',
@@ -100,7 +105,7 @@ def image_quality(objects):
         if flag in flags:
             reasons.append(flag)
     return {'estado': 'inconclusiva', 'motivos': reasons,
-            'regioes_sem_alerta': 0}
+            'regioes_sem_alerta': clear}
 
 
 def _bbox(obj):

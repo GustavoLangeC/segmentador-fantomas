@@ -21,7 +21,7 @@ significado científico com uma máscara manual independente.
 ```bash
 cd ~/projects/segmentador-fantomas
 venv/bin/python -m unittest discover -s tests -v
-venv/bin/python -m radio2.processar_lote --dicom-dir dicom \
+venv/bin/python -m segmentador_fantomas.processar_lote --dicom-dir dicom \
   --output-dir /tmp/radio2_qualidade_2026-11-16 --sensibilidade 1.5
 ```
 

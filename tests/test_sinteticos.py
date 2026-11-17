@@ -83,6 +83,9 @@ class TesteAvaliacaoSintetica(unittest.TestCase):
         self.assertEqual(image_quality([{'quality_flags': ['contraste_local_baixo']}])['estado'],
                          'inconclusiva')
         self.assertEqual(image_quality([{'quality_flags': []}])['estado'], 'provisoria')
+        mostly_flagged = [{'quality_flags': ['contraste_local_baixo']}] * 9 + [
+            {'quality_flags': []}]
+        self.assertEqual(image_quality(mostly_flagged)['estado'], 'inconclusiva')
 
     def test_referencia_manual_em_branco_versionada(self):
         with tempfile.TemporaryDirectory() as folder:

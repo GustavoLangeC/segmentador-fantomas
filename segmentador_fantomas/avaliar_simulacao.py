@@ -5,6 +5,7 @@ Os valores float64 originais são usados nas medições; float32 é empregado
 internamente pelo detector somente para localizar regiões.
 """
 import argparse
+import csv
 import hashlib
 import html
 import json
@@ -61,6 +62,11 @@ def _report(path, image, reference, objects, metrics, quality, bound):
             fmt(obj['background']), fmt(obj['corrected']))
         for obj in objects
     )
+    depth_rows = ''.join(
+        '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+            row['reference_id'], html.escape(row['shape']), fmt(row['depth_mm']),
+            row['automatic_id'] or '—', fmt(row['sinal_bruto']))
+        for row in metrics.get('reference_depth_rows', []))
     note = ('Referência vinculada ao SHA-256 da imagem.' if bound else
             'A referência não possui manifesto de vínculo; confira se corresponde à imagem.')
     page = f'''<!doctype html><html lang="pt-BR"><meta charset="utf-8">
@@ -80,7 +86,7 @@ Referência calculada da geometria ideal do cenário, com raios centrais e centr
 a borda física simulada pode diferir por amostragem e penumbra. Este único cenário não
 valida a segmentação em DICOMs clínicos ou outros fantomas.</p>
 <p><a href="comparacao.png">Comparação visual</a> · <a href="avaliacao_referencia.json">Métricas completas</a>
-· <a href="resultados.csv">Medições CSV</a></p>
+· <a href="resultados.csv">Medições CSV</a> · <a href="profundidades_referencia.csv">Profundidades de referência</a></p>
 <img src="comparacao.png" alt="Imagem original à esquerda; acertos verdes, falsos positivos vermelhos e falsos negativos azuis à direita">
 <p>Esquerda: sinal simulado original em escala de exibição. Direita: verde = sobreposição,
 vermelho = detecção fora da referência, azul = referência não detectada.</p>
@@ -88,6 +94,12 @@ vermelho = detecção fora da referência, azul = referência não detectada.</p
 <th>Sinal bruto</th><th>Fundo local</th><th>Sinal corrigido experimental</th></tr>{rows}</table>
 <p>O sinal corrigido usa uma adaptação experimental baseada na mediana dos fundos locais;
 ele não identifica profundidade física.</p></html>'''
+    if depth_rows:
+        section = ('<h2>Profundidades conhecidas da simulação</h2><p>Associação feita só após a detecção. '
+                   'Formas diferentes e condições de ruído confundem qualquer tendência entre profundidade e sinal.</p>'
+                   '<table><tr><th>ID referência</th><th>Forma</th><th>Profundidade (mm)</th>'
+                   '<th>ID automático associado</th><th>Sinal bruto</th></tr>' + depth_rows + '</table>')
+        page = page.replace('</html>', section + '</html>')
     path.write_text(page, encoding='utf-8')
 
 
@@ -103,6 +115,7 @@ def run(image_path, reference_path, output_dir, sensitivity=1.5, min_area=0,
         raise ValueError('A imagem NPY contém valores não finitos.')
     sidecar = reference_path.with_suffix('.json')
     bound = False
+    metadata = {}
     if sidecar.exists():
         metadata = json.loads(sidecar.read_text(encoding='utf-8'))
         if metadata.get('image_sha256') != _sha256(image_path):
@@ -114,6 +127,22 @@ def run(image_path, reference_path, output_dir, sensitivity=1.5, min_area=0,
     objects, labels = InsertoDetector(sensitivity, min_area).detect(crop, phantom_mask)
     reference = load_reference(reference_path, labels.shape, segmenter.last_bbox)
     metrics = evaluate_instances(labels, reference, iou_threshold)
+    by_object = {obj['id']: obj for obj in objects}
+    by_reference = {match['referencia_id']: match for match in metrics['matches']}
+    depth_rows = []
+    for entry in metadata.get('reference_objects', []):
+        match = by_reference.get(entry['reference_id'])
+        obj = by_object.get(match['automatico_id']) if match else None
+        depth_rows.append({
+            'reference_id': entry['reference_id'], 'shape': entry['shape'],
+            'depth_mm': entry['depth_mm'],
+            'automatic_id': obj['region_id'] if obj else '',
+            'iou': match['iou'] if match else '',
+            'sinal_bruto': obj['mean'] if obj else '',
+            'fundo_local': obj['background'] if obj else '',
+            'sinal_corrigido': obj['corrected'] if obj else '',
+        })
+    metrics['reference_depth_rows'] = depth_rows
     inner_margin = max(8, int(min(crop.shape) * 0.035))
     inside_count = int(np.count_nonzero(ndi.binary_erosion(phantom_mask, iterations=inner_margin)))
     detector_min = min_area or max(25, int(inside_count * 0.00018))
@@ -133,6 +162,12 @@ def run(image_path, reference_path, output_dir, sensitivity=1.5, min_area=0,
     }
     export_results(output_dir, objects, labels, segmenter.last_bbox, run_info)
     export_evaluation(output_dir, metrics)
+    with (output_dir / 'profundidades_referencia.csv').open('w', newline='', encoding='utf-8') as stream:
+        writer = csv.DictWriter(stream, fieldnames=[
+            'reference_id', 'shape', 'depth_mm', 'automatic_id', 'iou',
+            'sinal_bruto', 'fundo_local', 'sinal_corrigido'])
+        writer.writeheader()
+        writer.writerows(depth_rows)
     _preview(crop, labels, reference, output_dir / 'comparacao.png')
     _report(output_dir / 'relatorio_simulacao.html', image_path, reference_path,
             objects, metrics, quality, bound)

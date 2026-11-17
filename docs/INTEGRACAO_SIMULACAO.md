@@ -32,7 +32,7 @@ XRMC_PYTHON=.venv/bin/python ./executar_minimo.sh
 Em `segmentador-fantomas`, com `venv/` preparado conforme o README:
 
 ```bash
-venv/bin/python -m radio2.avaliar_simulacao \
+venv/bin/python -m segmentador_fantomas.avaliar_simulacao \
   --imagem ../simulacao-xrmc/minimo_pmmaa_furo/output/image.npy \
   --referencia ../simulacao-xrmc/minimo_pmmaa_furo/output/verdade_simulada.npz \
   --saida resultados/avaliacao_simulada --sensibilidade 1.5
@@ -42,6 +42,8 @@ venv/bin/python -m radio2.avaliar_simulacao \
 ruído; `mascaras.npz` contém as regiões previstas; `avaliacao_referencia.json`
 contém TP, FP, FN, IoU, Dice e erro de centroide. `comparacao.png` e
 `relatorio_simulacao.html` mostram as diferenças de máscara e as medições.
+`profundidades_referencia.csv` associa profundidades conhecidas da simulação
+às medidas apenas **depois** da detecção, sem inferir profundidade por rank.
 A saída deve estar ausente ou vazia para evitar sobrescrever resultados.
 
 ## Resultado observado neste cenário
@@ -53,6 +55,41 @@ concentra na borda; o erro de centroide associado foi **0,0354 px**. A
 transmissão furo/PMMA do XRMC foi **1,853070**. Uma execução do avaliador
 teve VmHWM observado de **124912 kB** e duração de **1,191 s**; é uma amostra,
 não uma comparação estatística de memória.
+
+## Cenários analíticos adicionais
+
+O repositório do simulador também contém `gerar_cenario_analitico.py` e três
+configurações em `cenarios/`. Esse gerador usa um modelo ilustrativo de
+transmissão `S=(S_PMMA+gradiente)·exp(μ·profundidade_cm)+ruído`, com formas
+de referência conhecidas e eventual teto de sinal. Ele **não executa XRMC**
+nem modela espectro, mAs ou resposta de detector. O detector recebe apenas
+o NPY; a forma e a profundidade entram somente na avaliação.
+
+Com sensibilidade 1,5 e sementes registradas nos JSONs, observou-se:
+
+| Cenário | TP | FP | FN | IoU por pixel | Estado heurístico |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Quatro formas, profundidades 5/10/15/20 mm | 4 | 0 | 0 | 0,836329 | provisória |
+| Baixo contraste, duas regiões | 2 | 44 | 0 | 0,223424 | inconclusiva |
+| Saturação ilustrativa, duas regiões | 0 | 5 | 2 | 0 | inconclusiva |
+
+As duas últimas linhas expõem falhas, não bom desempenho. Na imagem de baixo
+contraste, 45 dos 46 candidatos receberam alertas e o novo critério agregado
+marcou a análise como inconclusiva. Ele não descarta os falsos positivos e
+não foi calibrado como probabilidade. No caso saturado, o limite artificial
+`clip_max=45950` removeu o contraste útil e a análise também ficou
+inconclusiva. Não extrapole esses resultados para os DICOMs reais.
+
+O índice e os relatórios dos quatro cenários podem ser reproduzidos em uma
+única execução, dentro de `segmentador-fantomas`:
+
+```bash
+venv/bin/python -m segmentador_fantomas.benchmark_simulacao \
+  --simulacao ../simulacao-xrmc --saida resultados/benchmark_simulacao
+```
+
+A saída contém `resumo.csv`, `resumo.json`, `index.html`, logs e a pasta de
+cada cenário. Use uma pasta de saída nova para não sobrescrever a anterior.
 
 A referência expressa a geometria ideal, não uma máscara manual conferida
 pixel a pixel. Penumbra, amostragem e resposta simulada podem deslocar a

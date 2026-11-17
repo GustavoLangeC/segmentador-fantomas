@@ -4,13 +4,14 @@
 
 ## Para quem não usa terminal
 
-Na pasta do projeto, abra `Radio2.desktop` no ambiente gráfico. Dependendo do
-gerenciador de arquivos, pode ser preciso escolher **Permitir execução** na
-primeira vez. A janela também pode ser iniciada com
-`venv/bin/python interface.py`. Ela permite escolher arquivos DICOM
+Na pasta do projeto, execute `venv/bin/python instalar_atalho.py` uma vez.
+Depois abra **Segmentador de Fantomas** no menu de aplicativos. A janela
+também pode ser iniciada com `venv/bin/python interface.py`. Ela permite escolher arquivos DICOM
 individuais ou uma pasta, configurar a sensibilidade (padrão 1,5), escolher
 uma pasta de saída e iniciar o lote. A lista mostra sucesso ou falha por
 arquivo. Selecione um resultado e clique em **Revisar máscara e profundidade**.
+Na seção **Simulação e avaliação**, escolha um cenário XRMC ou analítico e
+clique em **Simular e avaliar**; o HTML abre quando a análise termina.
 
 O resumo separa `status=concluido` (programa terminou) de
 `qualidade_analise=provisoria` ou `inconclusiva` (interpretação dos candidatos).
@@ -68,7 +69,7 @@ venv/bin/python main.py Mão46_1 --sem-janela --output-dir resultados/ma_detecao
 Para abrir a anotação manual em branco pelo terminal:
 
 ```bash
-venv/bin/python -m radio2.anotar_referencia dicom/Crânio81_1 referencias/Crânio81_1
+venv/bin/python -m segmentador_fantomas.anotar_referencia dicom/Crânio81_1 referencias/Crânio81_1
 ```
 
 Esse comando também grava `resultados/ma_detecao/relatorio_Mão46_1.html`.
@@ -80,14 +81,14 @@ geradas separadamente por `gerar_resultados_tcc.py` quando há o lote completo.
 Para processar uma pasta inteira, inclusive DICOMs sem extensão:
 
 ```bash
-venv/bin/python -m radio2.processar_lote --dicom-dir dicom \
+venv/bin/python -m segmentador_fantomas.processar_lote --dicom-dir dicom \
   --output-dir resultados/lote_exemplo --sensibilidade 1.5
 ```
 
 Ou selecione arquivos específicos:
 
 ```bash
-venv/bin/python -m radio2.processar_lote dicom/Crânio81_1 dicom/Mão46_1 \
+venv/bin/python -m segmentador_fantomas.processar_lote dicom/Crânio81_1 dicom/Mão46_1 \
   --output-dir resultados/lote_dois --sensibilidade 1.5
 ```
 
@@ -103,7 +104,7 @@ já contém dados.
 Para editar um resultado individual por janela:
 
 ```bash
-venv/bin/python -m radio2.editor_mascaras dicom/Mão46_1 resultados/ma_detecao \
+venv/bin/python -m segmentador_fantomas.editor_mascaras dicom/Mão46_1 resultados/ma_detecao \
   resultados/ma_detecao/revisoes
 ```
 
@@ -111,7 +112,7 @@ Para recalcular uma máscara editada por outro programa, grave NPZ com
 `labels` e `crop_bbox_yxwh` iguais ao recorte original e execute:
 
 ```bash
-venv/bin/python -m radio2.quantificar_mascaras dicom/Mão46_1 resultados/ma_detecao \
+venv/bin/python -m segmentador_fantomas.quantificar_mascaras dicom/Mão46_1 resultados/ma_detecao \
   caminho/mascara_editada.npz resultados/ma_revisada
 ```
 
@@ -154,7 +155,7 @@ Foram executados:
 
 ```bash
 venv/bin/python -m unittest discover -s tests -v
-venv/bin/python -m radio2.processar_lote --dicom-dir dicom \
+venv/bin/python -m segmentador_fantomas.processar_lote --dicom-dir dicom \
   --output-dir resultados/lote_demonstracao_2026-11-16 --sensibilidade 1.5
 ```
 

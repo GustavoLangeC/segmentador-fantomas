@@ -7,6 +7,7 @@
 # Ambiente e dependências compiladas localmente
 /venv/
 /Radio2.desktop
+/SegmentadorFantomas.desktop
 
 # Artefatos de Python, empacotamento e execução
 __pycache__/

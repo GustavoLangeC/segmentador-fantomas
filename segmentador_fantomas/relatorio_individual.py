@@ -4,6 +4,8 @@ import math
 import os
 from pathlib import Path
 
+from .avaliacao import image_quality
+
 
 def _fmt(value, places=2):
     try:
@@ -72,7 +74,7 @@ def escrever_relatorio(destino, dicom, objects, sensibilidade, imagem_path=None)
     name = html.escape(Path(dicom).name)
     flagged = sum(bool(obj.get('quality_flags')) for obj in objects)
     all_flagged = bool(objects) and flagged == len(objects)
-    analysis_state = 'inconclusiva' if not objects or all_flagged else 'provisória'
+    analysis_state = image_quality(objects)['estado'].replace('provisoria', 'provisória')
     charts = [
         _chart(objects, 'mean', 'Sinal bruto', 'Média dos pixels DICOM'),
         _chart(objects, 'corrected', 'Sinal corrigido experimental', 'S corrigido'),
@@ -112,6 +114,7 @@ Sinal bruto e ruído vêm dos pixels originais do DICOM. O fundo é medido em an
 o sinal corrigido usa a mediana dos fundos locais e é uma adaptação experimental,
 não a ROI 12 do TCC. RSR = S/σ da ROI; RCR = |S - fundo|/σ do fundo.</p>
 {'<p class="warning">Todas as regiões têm alerta heurístico. As curvas não constituem medições confiáveis sem revisão.</p>' if all_flagged else ''}
+{'<p class="warning">A maioria das regiões tem alerta heurístico. Revise a imagem antes de interpretar as medições.</p>' if analysis_state == 'inconclusiva' and not all_flagged and objects else ''}
 {'<p class="warning">Nenhuma região foi detectada com estes parâmetros.</p>' if not objects else ''}
 <h2>Gráficos</h2><p>Pontos laranja vazios indicam alertas heurísticos.</p>
 <div class="charts">{''.join(charts)}</div><h2>Tabela de medições</h2>

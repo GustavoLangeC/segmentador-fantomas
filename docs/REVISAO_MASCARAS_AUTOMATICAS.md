@@ -21,7 +21,7 @@ Para reproduzir a análise de um DICOM:
 ```bash
 venv/bin/python main.py Crânio81_1 --sem-grafico --sensibilidade 1.2 \
   --output-dir resultados/historico/rascunho_sensibilidade_1.2/Crânio81_1
-venv/bin/python -m radio2.preparar_revisao_mascaras dicom/Crânio81_1 \
+venv/bin/python -m segmentador_fantomas.preparar_revisao_mascaras dicom/Crânio81_1 \
   resultados/historico/linha_base_2026-11-16_sensibilidade_1.5/Crânio81_1 \
   resultados/historico/rascunho_sensibilidade_1.2/Crânio81_1 \
   resultados/historico/revisao_automatica/Crânio81_1
@@ -51,7 +51,7 @@ pré-máscaras no ImageJ, em vez de desenhar todas as ROIs do zero.
 Após revisar o TIFF dos rótulos, exporte-o sem reescalonar e converta:
 
 ```bash
-venv/bin/python -m radio2.converter_referencia referencias/cranio81_1_revisado.tif \
+venv/bin/python -m segmentador_fantomas.converter_referencia referencias/cranio81_1_revisado.tif \
   referencias/cranio81_1_revisado.npz
 ```
 

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 
-from radio2.avaliar_simulacao import run
+from segmentador_fantomas.avaliar_simulacao import run
 
 
 class TesteIntegracaoSimulacao(unittest.TestCase):
@@ -28,6 +28,8 @@ class TesteIntegracaoSimulacao(unittest.TestCase):
             np.savez_compressed(reference_path, labels=reference)
             reference_path.with_suffix('.json').write_text(json.dumps({
                 'image_sha256': hashlib.sha256(image_path.read_bytes()).hexdigest(),
+                'reference_objects': [{'reference_id': 1, 'shape': 'circle',
+                                       'depth_mm': 5}],
             }), encoding='utf-8')
 
             output = root / 'resultado'
@@ -41,6 +43,10 @@ class TesteIntegracaoSimulacao(unittest.TestCase):
                 rows = list(csv.DictReader(stream))
             self.assertEqual(len(rows), 1)
             self.assertGreater(float(rows[0]['sinal_bruto']), 84000)
+            with (output / 'profundidades_referencia.csv').open(encoding='utf-8') as stream:
+                depth_rows = list(csv.DictReader(stream))
+            self.assertEqual(depth_rows[0]['automatic_id'], 'R001')
+            self.assertEqual(depth_rows[0]['depth_mm'], '5')
             with np.load(output / 'mascaras.npz', allow_pickle=False) as data:
                 self.assertEqual(data['labels'].ndim, 2)
 

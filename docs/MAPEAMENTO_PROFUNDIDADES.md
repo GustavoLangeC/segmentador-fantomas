@@ -4,7 +4,7 @@
 
 ## Fluxo para reconstruir curvas por profundidade
 
-1. Abra `venv/bin/python interface.py` ou `Radio2.desktop`.
+1. Abra `venv/bin/python interface.py` ou o atalho **Segmentador de Fantomas**.
 2. Clique em **Abrir lote existente** e escolha
    `resultados/lote_demonstracao_2026-11-16` (ou processe um lote novo).
 3. Selecione um DICOM e clique em **Revisar máscara e profundidade**.
@@ -46,9 +46,9 @@ uma revisão, informe a pasta da revisão mais recente; o gerador do lote usa
 essa versão das medições. Para um lote sem revisões:
 
 ```bash
-venv/bin/python -m radio2.mapear_profundidades \
+venv/bin/python -m segmentador_fantomas.mapear_profundidades \
   resultados/lote_demonstracao_2026-11-16/001_Crânio81_1
-venv/bin/python -m radio2.gerar_curvas_fisicas_lote \
+venv/bin/python -m segmentador_fantomas.gerar_curvas_fisicas_lote \
   --lote resultados/lote_demonstracao_2026-11-16
 ```
 
@@ -56,7 +56,7 @@ Se o mapa da imagem de origem já tiver sido salvo pelo terminal, a transferênc
 para as exposições do mesmo lote pode ser executada com:
 
 ```bash
-venv/bin/python -m radio2.transferir_profundidades \
+venv/bin/python -m segmentador_fantomas.transferir_profundidades \
   resultados/lote_demonstracao_2026-11-16/001_Crânio81_1
 ```
 

@@ -1,5 +1,5 @@
-"""Entrada da interface gráfica usada por Radio2.desktop."""
-from radio2.interface import main
+"""Entrada da interface gráfica do segmentador de fantomas."""
+from segmentador_fantomas.interface import main
 
 
 if __name__ == '__main__':
